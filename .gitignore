@@ -1,2 +1,5 @@
 /document
-dataset/
+dataset/images
+dataset/label_images
+dataset/processed
+
