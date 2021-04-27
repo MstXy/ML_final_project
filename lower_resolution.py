@@ -64,10 +64,11 @@ print(len(image_files)) #400, good.
 # test the first picture
 
 test_img = Image.open(image_files[0])
-test_img = test_img.resize((750, 500),Image.ANTIALIAS)
+# test_img = test_img.resize((750, 500),Image.ANTIALIAS)
+test_img = test_img.resize((750, 500),Image.NEAREST)
 # print(test_img)
 
-output_filename = image_files[0][-7:]
+output_filename = '0'+ image_files[0][-7:]
 test_img.save(os.path.join(image_path,'compressed_mask', output_filename))
 # TEST END ============================================================================
 
@@ -76,10 +77,11 @@ def processImages(image_files):
     for i, item in enumerate(image_files):
         print("Processing:", i, item)
         img = Image.open(item)
-        img = img.resize((750, 500),Image.ANTIALIAS)
+        # img = img.resize((750, 500),Image.ANTIALIAS)
+        img = test_img.resize((750, 500),Image.NEAREST)
         # print(test_img)
 
-        output_filename = item[-7:]
+        output_filename = '0'+ item[-7:]
         img.save(os.path.join(image_path,'compressed_mask', output_filename))
 
 processImages(image_files)
