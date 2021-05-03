@@ -17,6 +17,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 IMAGE_PATH = 'dataset/compressed_img/'
 MASK_PATH = 'dataset/compressed_mask/'
@@ -76,7 +77,7 @@ class DroneDataset(Dataset):
     def __getitem__(self, i):
         img = cv2.imread(self.img_path + self.X[i] + '.jpg')
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        mask = cv2.imread(self.mask_path + self.X[i] + '.png', cv2.IMREAD_GRAYSCALE)
+        mask = cv2.imread(self.mask_path + '0' + self.X[i] + '.png', cv2.IMREAD_GRAYSCALE)
         
         #how to transform?
         if self.transform:
@@ -84,12 +85,19 @@ class DroneDataset(Dataset):
             mask = self.transform(img)
             
         img = Image.fromarray(img)
-        img = T.ToTensor(img)
-        img = T.Normalize(self.mean, self.std)
+        trans = T.Compose(
+                        [T.ToTensor(),
+                        T.Normalize(self.mean, self.std)]
+                        )
+        img = trans(img)
+        # simply calling the below will not work, you have to forward it to return something, 
+        # thus, we have to use T.Compose and then call it.
+        # img = T.ToTensor()
+        # img = T.Normalize(self.mean, self.std)
         mask = torch.from_numpy(mask).long()
         
-        if self.patches:
-            img, mask = self.tiles(img, mask)
+        # if self.patches:
+        #     img, mask = self.tiles(img, mask)
             
         return img, mask
     
@@ -110,6 +118,8 @@ batch_size= 1
 train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
 val_loader = DataLoader(val_set, batch_size=batch_size, shuffle=True)
 
+X_train_sample = next(iter(train_loader))
+print(X_train_sample)
 
 model = UNet()
 
