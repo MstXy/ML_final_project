@@ -70,9 +70,9 @@ class UNet(nn.Module):
 
     def double_conv(self, in_channels, out_channels):
         return nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=0),
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=0),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
             nn.ReLU(inplace=True)
         )
     
@@ -80,16 +80,22 @@ class UNet(nn.Module):
         return nn.ConvTranspose2d(in_channels , in_channels // 2, kernel_size=2, stride=2)
 
     def Up(self, copy, t):
-        tw, th = t.size()[2:]
-        copy = self.crop(copy, tw, th)  
-        t = torch.cat([t, copy], dim=1)
+        th, tw = copy.size()[2:]
+        h, w = t.size()[2:]
+        diffH = th - h
+        diffW = tw - w
+        # pad: (padding_left,padding_right, \text{padding\_top}, \text{padding\_bottom})padding_top,padding_bottom)
+        t = F.pad(t, [diffW // 2, diffW - diffW // 2,
+                        diffH // 2, diffH - diffH // 2],  "constant", 0)
+        print(t.size(), copy.size())
+        t = torch.cat([copy, t], dim=1)
         return t
 
-    def crop(self, t,target_width,target_height):
-        w, h = t.size()[2:]
-        x1 = int(round((w - target_width) / 2.))
-        y1 = int(round((h - target_height) / 2.))
-        return t[:,:, x1:x1+target_width,y1:y1+target_height]
+    # def crop(self, t,target_width,target_height):
+    #     w, h = t.size()[2:]
+    #     x1 = int(round((w - target_width) / 2.))
+    #     y1 = int(round((h - target_height) / 2.))
+    #     return t[:,:, x1:x1+target_width,y1:y1+target_height]
 
 
 
@@ -100,22 +106,12 @@ if __name__ == "__main__":
     print(output)
     print(output.size())
 
-    val = torch.rand((1, 308, 564)).long().cuda()
+    val = torch.rand((1,500,750)).long().cuda()
     criterion = nn.CrossEntropyLoss().cuda()
     loss = criterion(output, val)
     print(loss.item())
 
-
-    def MiOU(output,label,n_class):
-        to_return_MiOU=np.zeros(n_class)
-        for i in range(0,n_class):
-            pred=np.arange(output.shape[0])[output==i]
-            target=np.arange(label.shape[0])[label==i]
-            n_intersection=np.intersect1d(pred,target).shape[0]
-            n_union=np.union1d(pred,target).shape[0]
-            to_return_MiOU[i]=n_intersection/(n_union+1)
-        return np.mean(to_return_MiOU)
-
-    test = torch.rand((24, 308, 564))
-    val = torch.rand((1, 308, 564)).long()
-    print(MiOU(test, val, 24))
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    optimizer.zero_grad() # when processing a new batch, clear the gradient on start
+    loss.backward() # calculate gradients
+    optimizer.step()
