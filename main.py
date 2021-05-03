@@ -259,7 +259,7 @@ lr = 0.001
 epoch = 1
 weight_decay = 0
 criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
+optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 
 
 train_losses, val_losses, train_miou, val_miou, train_accuracy, val_accuracy = fit(

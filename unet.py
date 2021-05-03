@@ -99,3 +99,23 @@ if __name__ == "__main__":
     output = model(test)
     print(output)
     print(output.size())
+
+    val = torch.rand((1, 308, 564)).long().cuda()
+    criterion = nn.CrossEntropyLoss().cuda()
+    loss = criterion(output, val)
+    print(loss.item())
+
+
+    def MiOU(output,label,n_class):
+        to_return_MiOU=np.zeros(n_class)
+        for i in range(0,n_class):
+            pred=np.arange(output.shape[0])[output==i]
+            target=np.arange(label.shape[0])[label==i]
+            n_intersection=np.intersect1d(pred,target).shape[0]
+            n_union=np.union1d(pred,target).shape[0]
+            to_return_MiOU[i]=n_intersection/(n_union+1)
+        return np.mean(to_return_MiOU)
+
+    test = torch.rand((24, 308, 564))
+    val = torch.rand((1, 308, 564)).long()
+    print(MiOU(test, val, 24))
