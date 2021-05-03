@@ -140,8 +140,6 @@ def pixel_accuracy(output,label):
     return pixel_accur
 
 
-# model return size 1*24*308*564], mask.size() = 1*500*750
-# need to modify
 def MiOU(output,label,n_class):
     to_return_MiOU=np.zeros(n_class)
     for i in range(0,n_class):
@@ -275,3 +273,7 @@ train_log = {'train_loss' : train_losses, 'val_loss': val_losses,
 def predict():
     pass
 
+
+
+# model return size 1*24*308*564], mask.size() = 1*500*750
+# need to modify
