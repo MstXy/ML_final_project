@@ -118,8 +118,8 @@ batch_size= 1
 train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
 val_loader = DataLoader(val_set, batch_size=batch_size, shuffle=True)
 
-X_train_sample = next(iter(train_loader))
-print(X_train_sample)
+X_train_sample, y_train_sample = next(iter(train_loader))
+print(X_train_sample, y_train_sample)
 
 model = UNet()
 
