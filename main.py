@@ -39,14 +39,14 @@ X_trainval, X_test = train_test_split(df['id'].values, test_size=0.1, random_sta
 X_train, X_val = train_test_split(X_trainval, test_size=0.15, random_state=0)
 
 
-# print('Train Size   : ', len(X_train))
-# print('Val Size     : ', len(X_val))
-# print('Test Size    : ', len(X_test))
+# print('Train Size   : ', len(X_train)) #306
+# print('Val Size     : ', len(X_val)) #54
+# print('Test Size    : ', len(X_test)) #40
 
-# img = cv2.imread(IMAGE_PATH + df['id'][100] + '.jpg')
+# img = cv2.imread(IMAGE_PATH + df['id'][0] + '.jpg')
 # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-# mask = Image.open(MASK_PATH + df['id'][100] + '.png')
-# mask = cv2.imread(MASK_PATH + df['id'][0] + '.png', cv2.IMREAD_GRAYSCALE)
+# ## mask = Image.open(MASK_PATH + '0' + df['id'][100] + '.png')
+# mask = cv2.imread(MASK_PATH + '0' + df['id'][0] + '.png', cv2.IMREAD_GRAYSCALE)
 # print('Image Size', np.asarray(img).shape)
 # print('Mask Size', np.asarray(mask).shape)
 # mask2 = cv2.imread('dataset/processed/' + df['id'][1] + '.png', cv2.IMREAD_GRAYSCALE)
@@ -55,7 +55,7 @@ X_train, X_val = train_test_split(X_trainval, test_size=0.15, random_state=0)
 # print(mask2.max())
 
 # plt.imshow(img)
-# plt.imshow(mask)
+# plt.imshow(mask, alpha=0.5)
 # plt.title('Picture with Mask Appplied')
 # plt.show()
 
@@ -105,14 +105,16 @@ val_set = DroneDataset(IMAGE_PATH, MASK_PATH, X_val, mean, std)
 #load data
 batch_size= 1
 
-train_loader = DataLoader(train_set)
-val_loader = DataLoader(val_set)
-# train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
-# val_loader = DataLoader(val_set, batch_size=batch_size, shuffle=True)
+# train_loader = DataLoader(train_set)
+# val_loader = DataLoader(val_set)
+train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
+val_loader = DataLoader(val_set, batch_size=batch_size, shuffle=True)
 
 
 model = UNet()
 
+def pixel_accuracy():
+    pass
 
 def mIoU(pred, mask):
     pass

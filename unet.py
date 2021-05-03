@@ -1,3 +1,4 @@
+from os import name
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -91,8 +92,10 @@ class UNet(nn.Module):
         return t[:,:, x1:x1+target_width,y1:y1+target_height]
 
 
-model = UNet().cuda()
-test = torch.rand((1,3,500,750)).cuda()
-output = model(test)
-print(output)
-print(output.size())
+
+if __name__ == "__main__":
+    model = UNet().cuda()
+    test = torch.rand((1,3,500,750)).cuda()
+    output = model(test)
+    print(output)
+    print(output.size())
