@@ -114,27 +114,53 @@ val_loader = DataLoader(val_set, batch_size=batch_size, shuffle=True)
 model = UNet()
 
 def pixel_accuracy(output,label):
-    T_predict=0
-    Total_predict=label.shape[0]*label.shape[1]
-    for i,c in enumerate(label):
-        curr_output=output[i]
-        curr_label=label[i]
-        T_predict+=np.sum(curr_output==curr_label)
-    if T_predict==0:
-        pixel_accur=0
-    else:
-        pixel_accur=T_predict/Total_predict
-    return pixel_accur
+    accur = output == label
+    return (torch.sum(accur).float() / output.nelement())
+#     T_predict=0
+#     Total_predict=label.shape[0]*label.shape[1]
+#     for i,c in enumerate(label):
+#         curr_output=output[i]
+#         curr_label=label[i]
+#         T_predict+=np.sum(curr_output==curr_label)
+#     if T_predict==0:
+#         pixel_accur=0
+#     else:
+#         pixel_accur=T_predict/Total_predict
+#     return pixel_accur
 
-def MiOU(output,label,n_class):
-    to_return_MiOU=np.zeros(n_class)
-    for i in range(0,n_class):
-        pred=np.arange(output.shape[0])[output==i]
-        target=np.arange(label.shape[0])[label==i]
-        n_intersection=np.intersect1d(pred,target).shape[0]
-        n_union=np.union1d(pred,target).shape[0]
-        to_return_MiOU[i]=n_intersection/(n_union+1)
-    return np.mean(to_return_MiOU)
+
+# def MiOU(output,label,n_class):
+#     to_return_MiOU=np.zeros(n_class)
+#     for i in range(0,n_class):
+#         pred=np.arange(output.shape[0])[output==i]
+#         target=np.arange(label.shape[0])[label==i]
+#         n_intersection=np.intersect1d(pred,target).shape[0]
+#         n_union=np.union1d(pred,target).shape[0]
+#         to_return_MiOU[i]=n_intersection/(n_union+1)
+#     return np.mean(to_return_MiOU)
+def MiOU(output,label,n_class,batch_size):
+    pred = torch.zeros([batch_size, n_class, output.shape[1], output.shape[2]])
+    target = torch.zeros([label.shape[0], n_class, label.shape[1], label.shape[2]])
+    output=output.unsqueeze(0)
+    label=label.unsqueeze(1)
+#base on output---->determine transfer the origional pred matrix into the OneHot matrix
+    #---->if some output_gray_scale_pixel==n_cls----->transfer to one row of 1-hot matrix
+    pred_onehot=pred.scatter_(index=output,dim=1,value=1)
+    target_onehot=target.scatter_(index=target,dim=1,value=1)
+    batch_mious=[]
+
+    #the number of 1=the value of intersection part
+    multiplication=pred_onehot*target_onehot
+    for i in range(batch_size):
+        iou=[]
+        for j in range(n_class):
+            intersection = torch.sum(multiplication[i][j])
+            #Inclusion–exclusion principle
+            union=torch.sum(pred_onehot[i][j])+torch.sum(target_onehot[i][j])-intersection
+            iou.append(intersection/union)
+        miou=np.mean(iou)
+        batch_mious.append(miou)
+    return batch_mious
 
 #因为不确定dataloader的structure 我先全部用dataset直接代入了
 def fit(epochs, model, train_loader, val_loader, optimizer, scheduler, patch=False,n_class):
