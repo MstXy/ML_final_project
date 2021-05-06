@@ -7,6 +7,8 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms as T
 import torch.nn.functional as F
 
+import tensorflow as tf
+
 from sklearn.model_selection import train_test_split
 
 from PIL import Image
@@ -19,6 +21,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# device = torch.device("cpu")
+
 
 IMAGE_PATH = 'dataset/compressed_img/'
 MASK_PATH = 'dataset/compressed_mask/'
@@ -151,29 +155,65 @@ def pixel_accuracy(output,label):
 #         n_union=np.union1d(pred,target).shape[0]
 #         to_return_MiOU[i]=n_intersection/(n_union+1)
 #     return np.mean(to_return_MiOU)
-def MiOU(output,label,n_class,batch_size):
-    pred = torch.zeros([batch_size, n_class, output.shape[1], output.shape[2]])
-    target = torch.zeros([label.shape[0], n_class, label.shape[1], label.shape[2]])
-    output=output.unsqueeze(0)
-    label=label.unsqueeze(1)
-#base on output---->determine transfer the origional pred matrix into the OneHot matrix
-    #---->if some output_gray_scale_pixel==n_cls----->transfer to one row of 1-hot matrix
-    pred_onehot=pred.scatter_(index=output,dim=1,value=1)
-    target_onehot=target.scatter_(index=target,dim=1,value=1)
-    batch_mious=[]
 
-    #the number of 1=the value of intersection part
-    multiplication=pred_onehot*target_onehot
-    for i in range(batch_size):
-        iou=[]
-        for j in range(n_class):
-            intersection = torch.sum(multiplication[i][j])
-            #Inclusion–exclusion principle
-            union=torch.sum(pred_onehot[i][j])+torch.sum(target_onehot[i][j])-intersection
-            iou.append(intersection/union)
-        miou=np.mean(iou)
-        batch_mious.append(miou)
-    return batch_mious
+# def MiOU(pred_mask,mask,n_classes):
+#     with torch.no_grad():
+#         pred_mask = F.softmax(pred_mask, dim=1)
+#         pred_mask = torch.argmax(pred_mask,dim=1)
+#         pred_mask = pred_mask.contiguous().view(-1)
+#         pred_oht = tf.one_hot(pred_mask,depth=24)
+#         mask = mask.contiguous().view(-1)
+#         mask_oht = tf.one_hot(pred_mask,depth=24)
+#         mulplication=mask_oht*pred_oht
+#         intersection=mulplication.sum(1)
+#         union=mask_oht.sum(1)+pred_oht.sum(1)
+#         iou=[]
+#         for i in range(intersection.shape[0]):
+#             iou_cls=intersection[i]/(union[i]+1)
+#             iou.append(iou_cls)
+#         miou=np.mean(iou)
+#         return miou
+
+# def MiOU(pred_mask,mask,n_classes):
+#     pred_mask = F.softmax(pred_mask, dim=1)
+#     pred_mask = torch.argmax(pred_mask,dim=1)
+#     pred_mask = pred_mask.contiguous().view(-1)
+#     iou_per_class = []
+#     for j in range(n_classes):
+#         intersect=0
+#         union=0.0001
+#         for i in range(pred_mask.shape[0]):
+#             if pred_mask[i]==j and mask[i]==j:
+#                 intersect+=1
+#             if pred_mask[i]==j:
+#                 union+=1
+#             if mask[i]==j:
+#                 union+=1
+#         iou=intersect/union
+#         iou_per_class.append(iou)
+#     return np.mean(iou_per_class)
+
+def MiOU(pred_mask, mask, smooth=1e-10, n_classes=23):
+    with torch.no_grad():
+        pred_mask = F.softmax(pred_mask, dim=1)
+        pred_mask = torch.argmax(pred_mask, dim=1)
+        pred_mask = pred_mask.contiguous().view(-1)
+        mask = mask.contiguous().view(-1)
+
+        iou_per_class = []
+        for clas in range(0, n_classes): #loop per pixel class
+            true_class = pred_mask == clas
+            true_label = mask == clas
+
+            if true_label.long().sum().item() == 0: #no exist label in this loop
+                iou_per_class.append(np.nan)
+            else:
+                intersect = torch.logical_and(true_class, true_label).sum().float().item()
+                union = torch.logical_or(true_class, true_label).sum().float().item()
+
+                iou = (intersect + smooth) / (union +smooth)
+                iou_per_class.append(iou)
+        return np.nanmean(iou_per_class)
 
 def fit(epochs, model, train_loader, val_loader, criterion, optimizer, batch_size, n_class=23):
     torch.cuda.empty_cache()
@@ -206,7 +246,7 @@ def fit(epochs, model, train_loader, val_loader, criterion, optimizer, batch_siz
             prediction = model(img) # pass batch
             loss = criterion(prediction,mask) # calculate loss, loss tensor
             # add to evaluation metrics
-            total_miou += MiOU(prediction,mask,n_class,batch_size) 
+            total_miou += MiOU(prediction,mask) 
             total_accuracy += pixel_accuracy(prediction,mask)
 
             # back prop
@@ -235,7 +275,7 @@ def fit(epochs, model, train_loader, val_loader, criterion, optimizer, batch_siz
                     loss = criterion(prediction, mask)  # how to split mask from the train_loader
                     total_val_loss += loss.item()
 
-                    total_val_miou += MiOU(prediction,mask,n_class,batch_size)
+                    total_val_miou += MiOU(prediction,mask,n_class)
                     total_val_accuracy += pixel_accuracy(prediction, mask)
 
                     total_val_loss += loss.item()
