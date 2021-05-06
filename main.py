@@ -7,7 +7,7 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms as T
 import torch.nn.functional as F
 
-import tensorflow as tf
+# import tensorflow as tf
 
 from sklearn.model_selection import train_test_split
 
@@ -116,7 +116,7 @@ train_set = DroneDataset(IMAGE_PATH, MASK_PATH, X_train, mean, std)
 val_set = DroneDataset(IMAGE_PATH, MASK_PATH, X_val, mean, std)
 
 #load data
-batch_size= 1
+batch_size= 2
 
 # train_loader = DataLoader(train_set)
 # val_loader = DataLoader(val_set)
@@ -131,67 +131,9 @@ val_loader = DataLoader(val_set, batch_size=batch_size, shuffle=True)
 model = UNet()
 
 def pixel_accuracy(output,label):
-    accur = output == label
+    output = torch.argmax(F.softmax(output, dim=1), dim=1)
+    accur = torch.eq(output, label).int()
     return (torch.sum(accur).float() / output.nelement())
-#     T_predict=0
-#     Total_predict=label.shape[0]*label.shape[1]
-#     for i,c in enumerate(label):
-#         curr_output=output[i]
-#         curr_label=label[i]
-#         T_predict+=np.sum(curr_output==curr_label)
-#     if T_predict==0:
-#         pixel_accur=0
-#     else:
-#         pixel_accur=T_predict/Total_predict
-#     return pixel_accur
-
-
-# def MiOU(output,label,n_class):
-#     to_return_MiOU=np.zeros(n_class)
-#     for i in range(0,n_class):
-#         pred=np.arange(output.shape[0])[output==i]
-#         target=np.arange(label.shape[0])[label==i]
-#         n_intersection=np.intersect1d(pred,target).shape[0]
-#         n_union=np.union1d(pred,target).shape[0]
-#         to_return_MiOU[i]=n_intersection/(n_union+1)
-#     return np.mean(to_return_MiOU)
-
-# def MiOU(pred_mask,mask,n_classes):
-#     with torch.no_grad():
-#         pred_mask = F.softmax(pred_mask, dim=1)
-#         pred_mask = torch.argmax(pred_mask,dim=1)
-#         pred_mask = pred_mask.contiguous().view(-1)
-#         pred_oht = tf.one_hot(pred_mask,depth=24)
-#         mask = mask.contiguous().view(-1)
-#         mask_oht = tf.one_hot(pred_mask,depth=24)
-#         mulplication=mask_oht*pred_oht
-#         intersection=mulplication.sum(1)
-#         union=mask_oht.sum(1)+pred_oht.sum(1)
-#         iou=[]
-#         for i in range(intersection.shape[0]):
-#             iou_cls=intersection[i]/(union[i]+1)
-#             iou.append(iou_cls)
-#         miou=np.mean(iou)
-#         return miou
-
-# def MiOU(pred_mask,mask,n_classes):
-#     pred_mask = F.softmax(pred_mask, dim=1)
-#     pred_mask = torch.argmax(pred_mask,dim=1)
-#     pred_mask = pred_mask.contiguous().view(-1)
-#     iou_per_class = []
-#     for j in range(n_classes):
-#         intersect=0
-#         union=0.0001
-#         for i in range(pred_mask.shape[0]):
-#             if pred_mask[i]==j and mask[i]==j:
-#                 intersect+=1
-#             if pred_mask[i]==j:
-#                 union+=1
-#             if mask[i]==j:
-#                 union+=1
-#         iou=intersect/union
-#         iou_per_class.append(iou)
-#     return np.mean(iou_per_class)
 
 def MiOU(pred_mask, mask, smooth=1e-10, n_classes=23):
     with torch.no_grad():
@@ -224,6 +166,7 @@ def fit(epochs, model, train_loader, val_loader, criterion, optimizer, batch_siz
     train_accuracy = []
     val_accuracy = []
     mini_loss = float('inf')
+    no_progress = 0
     
     model.to(device)
     train_begin = time.time()
@@ -281,9 +224,6 @@ def fit(epochs, model, train_loader, val_loader, criterion, optimizer, batch_siz
                     total_val_loss += loss.item()
 
 
-                ## determine when to stop the train through the epochs
-                # if mini_loss>loss:
-                #     pass
 
                 # calculate loss
                 this_train_loss = total_loss/len(train_loader)
@@ -291,6 +231,18 @@ def fit(epochs, model, train_loader, val_loader, criterion, optimizer, batch_siz
 
                 train_losses.append(this_train_loss)
                 val_losses.append(this_val_loss)
+            
+                ## determine when to stop the train through the epochs
+                if mini_loss > this_val_loss:
+                    print('Loss Decreasing.. {:.3f} >> {:.3f} '.format(mini_loss, this_val_loss))
+                    mini_loss = this_val_loss
+                else:
+                    no_progress += 1
+                    mini_loss = this_val_loss
+                    print(f'Loss Not Decrease for {no_progress} time')
+                    if no_progress == 7:
+                        print('Loss not decrease for 7 times, Stop Training')
+                        break
 
                 # calculate iou 
                 this_miou = total_miou/len(train_loader)
@@ -321,8 +273,8 @@ def fit(epochs, model, train_loader, val_loader, criterion, optimizer, batch_siz
 
 
 lr = 0.001
-epoch = 1
-weight_decay = 0
+epoch = 15
+weight_decay = 0.0001
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 
@@ -335,10 +287,47 @@ train_log = {'train_loss' : train_losses, 'val_loss': val_losses,
         'train_miou' :train_miou, 'val_miou':val_miou,
         'train_acc' :train_accuracy, 'val_acc':val_accuracy}
 
+# save the model
+torch.save(model, 'Unet_2.pt')
+
+# plot the result
+def plot_loss(log):
+    plt.plot(log['val_loss'], label='val', marker='o')
+    plt.plot(log['train_loss'], label='train', marker='o')
+    plt.title('Loss per epoch')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(), plt.grid()
+    plt.savefig('loss.png')
+    plt.show()
+    
+def plot_miou(log):
+    plt.plot(log['train_miou'], label='train_mIoU', marker='*')
+    plt.plot(log['val_miou'], label='val_mIoU',  marker='*')
+    plt.title('Score per epoch')
+    plt.ylabel('mean IoU')
+    plt.xlabel('epoch')
+    plt.legend(), plt.grid()
+    plt.savefig('miou.png')
+    plt.show()
+    
+def plot_accuracy(log):
+    plt.plot(log['train_acc'], label='train_accuracy', marker='*')
+    plt.plot(log['val_acc'], label='val_accuracy',  marker='*')
+    plt.title('Accuracy per epoch')
+    plt.ylabel('Accuracy')
+    plt.xlabel('epoch')
+    plt.legend(), plt.grid()
+    plt.savefig('accuracy.png')
+    plt.show()
+
+plot_loss(train_log)
+plot_miou(train_log)
+plot_accuracy(train_log)
+
+
+
 def predict():
     pass
 
 
-
-# model return size 1*24*308*564], mask.size() = 1*500*750
-# need to modify
