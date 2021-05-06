@@ -175,7 +175,7 @@ def MiOU(output,label,n_class,batch_size):
         batch_mious.append(miou)
     return batch_mious
 
-def fit(epochs, model, train_loader, val_loader, criterion, optimizer, n_class=23):
+def fit(epochs, model, train_loader, val_loader, criterion, optimizer, batch_size, n_class=23):
     torch.cuda.empty_cache()
     train_losses = []
     val_losses = []
@@ -206,7 +206,7 @@ def fit(epochs, model, train_loader, val_loader, criterion, optimizer, n_class=2
             prediction = model(img) # pass batch
             loss = criterion(prediction,mask) # calculate loss, loss tensor
             # add to evaluation metrics
-            total_miou += MiOU(prediction,mask,n_class) 
+            total_miou += MiOU(prediction,mask,n_class,batch_size) 
             total_accuracy += pixel_accuracy(prediction,mask)
 
             # back prop
@@ -235,7 +235,7 @@ def fit(epochs, model, train_loader, val_loader, criterion, optimizer, n_class=2
                     loss = criterion(prediction, mask)  # how to split mask from the train_loader
                     total_val_loss += loss.item()
 
-                    total_val_miou += MiOU(prediction, mask, n_class)
+                    total_val_miou += MiOU(prediction,mask,n_class,batch_size)
                     total_val_accuracy += pixel_accuracy(prediction, mask)
 
                     total_val_loss += loss.item()
@@ -288,7 +288,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_deca
 
 
 train_losses, val_losses, train_miou, val_miou, train_accuracy, val_accuracy = fit(
-    epoch, model, train_loader, val_loader, criterion, optimizer
+    epoch, model, train_loader, val_loader, criterion, optimizer, batch_size
 )
 
 train_log = {'train_loss' : train_losses, 'val_loss': val_losses,

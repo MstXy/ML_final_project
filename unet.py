@@ -87,7 +87,7 @@ class UNet(nn.Module):
         # pad: (padding_left,padding_right, \text{padding\_top}, \text{padding\_bottom})padding_top,padding_bottom)
         t = F.pad(t, [diffW // 2, diffW - diffW // 2,
                         diffH // 2, diffH - diffH // 2],  "constant", 0)
-        print(t.size(), copy.size())
+        # print(t.size(), copy.size())
         t = torch.cat([copy, t], dim=1)
         return t
 
@@ -115,3 +115,6 @@ if __name__ == "__main__":
     optimizer.zero_grad() # when processing a new batch, clear the gradient on start
     loss.backward() # calculate gradients
     optimizer.step()
+
+    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # print(device)
