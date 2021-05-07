@@ -82,21 +82,18 @@ std=[0.229, 0.224, 0.225]
 
 
 # adding transformation after 3rd training
-t =  A.Compose([
-                A.HorizontalFlip(), 
-                A.VerticalFlip(), 
-                A.GridDistortion(p=0.2), 
-                A.RandomBrightnessContrast((0,0.5),(0,0.5)),
-                A.GaussNoise()
-                ])
-t_val = A.Compose([
-                A.HorizontalFlip(), 
-                A.GridDistortion(p=0.2)
-                ])
+# not really working
+# t =  A.Compose([
+#                 A.HorizontalFlip(), 
+#                 A.VerticalFlip(), 
+#                 A.GridDistortion(p=0.2), 
+#                 A.RandomBrightnessContrast((0,0.5),(0,0.5)),
+#                 A.GaussNoise()
+#                 ])
 
 #create datasets
-train_set = DroneDataset(IMAGE_PATH, MASK_PATH, X_train, mean, std, t)
-val_set = DroneDataset(IMAGE_PATH, MASK_PATH, X_val, mean, std, t_val)
+train_set = DroneDataset(IMAGE_PATH, MASK_PATH, X_train, mean, std)
+val_set = DroneDataset(IMAGE_PATH, MASK_PATH, X_val, mean, std)
 #load data
 batch_size= 3
 
@@ -230,8 +227,8 @@ def fit(epochs, model, train_loader, val_loader, criterion, optimizer, scheduler
                     no_progress += 1
                     mini_loss = this_val_loss
                     print(f'Loss Not Decrease for {no_progress} time')
-                    if no_progress == 7:
-                        print('Loss not decrease for 7 times, Stop Training')
+                    if no_progress == 10:
+                        print('Loss not decrease for 10 times, Stop Training')
                         break
 
                 # calculate iou 
