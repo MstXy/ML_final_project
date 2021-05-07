@@ -234,12 +234,11 @@ def fit(epochs, model, train_loader, val_loader, criterion, optimizer, scheduler
 
     return train_losses, val_losses, train_miou, val_miou, train_accuracy, val_accuracy
 
-
 lr = 0.001
-epoch = 15
+epoch = 25
 weight_decay = 0.0001
 criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
+optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
 scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, lr, epochs=epoch,
                                             steps_per_epoch=len(train_loader))
 
@@ -253,7 +252,7 @@ train_log = {'train_loss' : train_losses, 'val_loss': val_losses,
         'train_acc' :train_accuracy, 'val_acc':val_accuracy}
 
 # save the model
-torch.save(model, 'Unet_5.pt')
+torch.save(model, 'Unet_2.pt')
 
 # plot the result
 def plot_loss(log):
@@ -291,9 +290,9 @@ plot_miou(train_log)
 plot_accuracy(train_log)
 
 
-model = torch.load("5_train_batch_2_epoch_15_decay_1e-4_sche/Unet_5.pt")
+model = torch.load("Unet_2.pt")
 test_set = DroneTestDataset(IMAGE_PATH, MASK_PATH, X_test)
-print(test_set[0])
+# print(test_set[0])
 
 # evaluation
 def predict_image_mask_miou(model, image, mask):
