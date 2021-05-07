@@ -114,7 +114,7 @@ std=[0.229, 0.224, 0.225]
 #create datasets
 train_set = DroneDataset(IMAGE_PATH, MASK_PATH, X_train, mean, std)
 val_set = DroneDataset(IMAGE_PATH, MASK_PATH, X_val, mean, std)
-
+test_set = DroneDataset(IMAGE_PATH, MASK_PATH, X_test, mean, std)
 #load data
 batch_size= 2
 
@@ -157,7 +157,7 @@ def MiOU(pred_mask, mask, smooth=1e-10, n_classes=23):
                 iou_per_class.append(iou)
         return np.nanmean(iou_per_class)
 
-def fit(epochs, model, train_loader, val_loader, criterion, optimizer, batch_size, n_class=23):
+def fit(epochs, model, train_loader, val_loader, criterion, optimizer, scheduler,  batch_size, n_class=23):
     torch.cuda.empty_cache()
     train_losses = []
     val_losses = []
@@ -198,6 +198,7 @@ def fit(epochs, model, train_loader, val_loader, criterion, optimizer, batch_siz
             optimizer.step() # update weights
 
             #TBD: update learning rate...
+            scheduler.step()
 
             total_loss += loss.item()
 
@@ -277,10 +278,12 @@ epoch = 15
 weight_decay = 0.0001
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
+scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, lr, epochs=epoch,
+                                            steps_per_epoch=len(train_loader))
 
 
 train_losses, val_losses, train_miou, val_miou, train_accuracy, val_accuracy = fit(
-    epoch, model, train_loader, val_loader, criterion, optimizer, batch_size
+    epoch, model, train_loader, val_loader, criterion, optimizer, scheduler, batch_size
 )
 
 train_log = {'train_loss' : train_losses, 'val_loss': val_losses,
@@ -288,7 +291,7 @@ train_log = {'train_loss' : train_losses, 'val_loss': val_losses,
         'train_acc' :train_accuracy, 'val_acc':val_accuracy}
 
 # save the model
-torch.save(model, 'Unet_2.pt')
+torch.save(model, 'Unet_5.pt')
 
 # plot the result
 def plot_loss(log):
@@ -327,7 +330,114 @@ plot_accuracy(train_log)
 
 
 
-def predict():
-    pass
+
+# evaluation
+def predict_image_mask_miou(model, image, mask):
+    model.eval()
+    
+    model.to(device)
+    image = image.to(device)
+    mask = mask.to(device)
+    with torch.no_grad():
+        image = image.unsqueeze(0)
+        mask = mask.unsqueeze(0)
+        
+        output = model(image)
+        score = MiOU(output, mask)
+        masked = torch.argmax(output, dim=1)
+        masked = masked.cpu().squeeze(0)
+    return masked, score
+
+def predict_image_mask_accuracy(model, image, mask):
+    model.eval()
+
+    model.to(device)
+    image = image.to(device)
+    mask = mask.to(device)
+    with torch.no_grad():
+        
+        image = image.unsqueeze(0)
+        mask = mask.unsqueeze(0)
+        
+        output = model(image)
+        accuracy = pixel_accuracy(output, mask)
+        masked = torch.argmax(output, dim=1)
+        masked = masked.cpu().squeeze(0)
+    return masked, accuracy
 
 
+# model score
+def model_miou_score(model, test_set):
+    score_iou = []
+    for i in range(len(test_set)):
+        img, mask = test_set[i]
+        pred_mask, score = predict_image_mask_miou(model, img, mask)
+        score_iou.append(score)
+    return np.mean(score_iou)
+
+def model_pixel_accuracy(model, test_set):
+    accuracy = []
+    for i in range(len(test_set)):
+        img, mask = test_set[i]
+        pred_mask, acc = predict_image_mask_accuracy(model, img, mask)
+        accuracy.append(acc)
+    return np.mean(accuracy)
+
+model_miou = model_miou_score(model, test_set)
+model_accuracy = model_pixel_accuracy(model, test_set)
+
+print('Test Set MiOU: ', model_miou)
+print('Test Set Pixel Accuracy: ', model_accuracy)
+
+# visualize pic 1
+image, mask = test_set[0]
+pred_mask, score = predict_image_mask_miou(model, image, mask)
+fig, (ax1, ax2, ax3) = plt.subplots(1,3, figsize=(20,10))
+ax1.imshow(image)
+ax1.set_title('Picture 1')
+
+ax2.imshow(mask)
+ax2.set_title('Ground Truth Mask')
+ax2.set_axis_off()
+
+ax3.imshow(pred_mask)
+ax3.set_title('Predicted | MIOU {:.3f}'.format(score))
+ax3.set_axis_off()
+
+fig.savefig('picture_1.png')
+
+
+# visualize pic 2
+image, mask = test_set[1]
+pred_mask, score = predict_image_mask_miou(model, image, mask)
+fig, (ax1, ax2, ax3) = plt.subplots(1,3, figsize=(20,10))
+ax1.imshow(image)
+ax1.set_title('Picture 2')
+
+ax2.imshow(mask)
+ax2.set_title('Ground Truth Mask')
+ax2.set_axis_off()
+
+ax3.imshow(pred_mask)
+ax3.set_title('Predicted | MIOU {:.3f}'.format(score))
+ax3.set_axis_off()
+
+fig.savefig('picture_2.png')
+
+
+# visualize pic 3
+image, mask = test_set[2]
+pred_mask, score = predict_image_mask_miou(model, image, mask)
+fig, (ax1, ax2, ax3) = plt.subplots(1,3, figsize=(20,10))
+ax1.imshow(image)
+ax1.set_title('Picture 3')
+
+ax2.imshow(mask)
+ax2.set_title('Ground Truth Mask')
+ax2.set_axis_off()
+
+ax3.imshow(pred_mask)
+ax3.set_title('Predicted | MIOU {:.3f}'.format(score))
+ax3.set_axis_off()
+
+fig.savefig('picture_3.png')

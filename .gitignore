@@ -2,4 +2,8 @@
 dataset/images
 dataset/label_images
 dataset/processed
-
+1_train_batch_1_epoch_15_decay_0/Unet.pt
+2_train_batch_2_epoch_15_decay_1e-4/Unet_2.pt
+3_train_batch_2_epoch_20_decay_1e-4/Unet_3.pt
+4_train_batch_2_epoch_10_decay_1e-4/Unet_4.pt
+5_train_batch_2_epoch_15_decay_1e-4_sche/Unet_5.pt
