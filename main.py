@@ -89,10 +89,14 @@ t =  A.Compose([
                 A.RandomBrightnessContrast((0,0.5),(0,0.5)),
                 A.GaussNoise()
                 ])
+t_val = A.Compose([
+                A.HorizontalFlip(), 
+                A.GridDistortion(p=0.2)
+                ])
 
 #create datasets
 train_set = DroneDataset(IMAGE_PATH, MASK_PATH, X_train, mean, std, t)
-val_set = DroneDataset(IMAGE_PATH, MASK_PATH, X_val, mean, std, t)
+val_set = DroneDataset(IMAGE_PATH, MASK_PATH, X_val, mean, std, t_val)
 #load data
 batch_size= 3
 
@@ -258,7 +262,7 @@ def fit(epochs, model, train_loader, val_loader, criterion, optimizer, scheduler
     return train_losses, val_losses, train_miou, val_miou, train_accuracy, val_accuracy
 
 lr = 0.001
-epoch = 20
+epoch = 18
 weight_decay = 0.0001
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
@@ -275,7 +279,7 @@ train_log = {'train_loss' : train_losses, 'val_loss': val_losses,
         'train_acc' :train_accuracy, 'val_acc':val_accuracy}
 
 # save the model
-torch.save(model, 'Unet_2.pt')
+torch.save(model, 'Unet_5.pt')
 
 # plot the result
 def plot_loss(log):
