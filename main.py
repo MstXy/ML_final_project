@@ -259,13 +259,12 @@ def fit(epochs, model, train_loader, val_loader, criterion, optimizer, scheduler
     return train_losses, val_losses, train_miou, val_miou, train_accuracy, val_accuracy
 
 lr = 0.001
-epoch = 18
+epoch = 30
 weight_decay = 0.0001
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
 scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, lr, epochs=epoch,
                                             steps_per_epoch=len(train_loader))
-
 
 train_losses, val_losses, train_miou, val_miou, train_accuracy, val_accuracy = fit(
     epoch, model, train_loader, val_loader, criterion, optimizer, scheduler, batch_size
@@ -314,7 +313,7 @@ plot_miou(train_log)
 plot_accuracy(train_log)
 
 
-model = torch.load("Unet_2.pt")
+model = torch.load("Unet_5.pt")
 test_set = DroneTestDataset(IMAGE_PATH, MASK_PATH, X_test)
 # print(test_set[0])
 
