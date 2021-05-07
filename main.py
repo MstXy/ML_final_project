@@ -8,6 +8,7 @@ from torchvision import transforms as T
 import torch.nn.functional as F
 
 # import tensorflow as tf
+import segmentation_models_pytorch as smp
 
 from sklearn.model_selection import train_test_split
 
@@ -25,8 +26,11 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # device = torch.device("cpu")
 
 
-IMAGE_PATH = 'dataset/compressed_img/'
-MASK_PATH = 'dataset/compressed_mask/'
+# IMAGE_PATH = 'dataset/compressed_img/'
+# MASK_PATH = 'dataset/compressed_mask/'
+IMAGE_PATH = 'dataset/new_size_img/'
+MASK_PATH = 'dataset/new_size_mask/'
+
 
 # create df with id of the dataset
 def create_df(path):
@@ -90,7 +94,14 @@ val_loader = DataLoader(val_set, batch_size=batch_size, shuffle=True)
 # X_train_sample, y_train_sample = next(iter(train_loader))
 # print(X_train_sample, y_train_sample)
 
-model = UNet()
+# model = UNet()
+model = smp.Unet(
+    'mobilenet_v2', 
+    encoder_weights='imagenet', 
+    classes=23, 
+    encoder_depth=5, 
+    decoder_channels=[256, 128, 64, 32, 16]
+    )
 
 def pixel_accuracy(output,label):
     output = torch.argmax(F.softmax(output, dim=1), dim=1)
@@ -238,7 +249,7 @@ lr = 0.001
 epoch = 25
 weight_decay = 0.0001
 criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
+optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, lr, epochs=epoch,
                                             steps_per_epoch=len(train_loader))
 
