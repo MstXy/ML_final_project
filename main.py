@@ -82,7 +82,7 @@ std=[0.229, 0.224, 0.225]
 train_set = DroneDataset(IMAGE_PATH, MASK_PATH, X_train, mean, std)
 val_set = DroneDataset(IMAGE_PATH, MASK_PATH, X_val, mean, std)
 #load data
-batch_size= 2
+batch_size= 3
 
 # train_loader = DataLoader(train_set)
 # val_loader = DataLoader(val_set)
@@ -246,10 +246,10 @@ def fit(epochs, model, train_loader, val_loader, criterion, optimizer, scheduler
     return train_losses, val_losses, train_miou, val_miou, train_accuracy, val_accuracy
 
 lr = 0.001
-epoch = 25
+epoch = 30
 weight_decay = 0.0001
 criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
+optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
 scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, lr, epochs=epoch,
                                             steps_per_epoch=len(train_loader))
 
