@@ -28,10 +28,11 @@ class DroneDataset(Dataset):
         
         #how to transform?
         if self.transform:
-            img = self.transform(img)
-            mask = self.transform(img)
-            
-        img = Image.fromarray(img)
+            augmented = self.transform(image=img, mask=mask)
+            img = Image.fromarray(augmented['image'])
+            mask = augmented['mask']
+        else:   
+            img = Image.fromarray(img)
         trans = T.Compose(
                         [T.ToTensor(),
                         T.Normalize(self.mean, self.std)]

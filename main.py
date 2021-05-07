@@ -10,6 +10,9 @@ import torch.nn.functional as F
 # import tensorflow as tf
 import segmentation_models_pytorch as smp
 
+# for image augmentation
+import albumentations as A
+
 from sklearn.model_selection import train_test_split
 
 from PIL import Image
@@ -78,9 +81,18 @@ mean=[0.485, 0.456, 0.406]
 std=[0.229, 0.224, 0.225]
 
 
+# adding transformation after 3rd training
+t =  A.Compose([
+                A.HorizontalFlip(), 
+                A.VerticalFlip(), 
+                A.GridDistortion(p=0.2), 
+                A.RandomBrightnessContrast((0,0.5),(0,0.5)),
+                A.GaussNoise()
+                ])
+
 #create datasets
-train_set = DroneDataset(IMAGE_PATH, MASK_PATH, X_train, mean, std)
-val_set = DroneDataset(IMAGE_PATH, MASK_PATH, X_val, mean, std)
+train_set = DroneDataset(IMAGE_PATH, MASK_PATH, X_train, mean, std, t)
+val_set = DroneDataset(IMAGE_PATH, MASK_PATH, X_val, mean, std, t)
 #load data
 batch_size= 3
 
@@ -246,7 +258,7 @@ def fit(epochs, model, train_loader, val_loader, criterion, optimizer, scheduler
     return train_losses, val_losses, train_miou, val_miou, train_accuracy, val_accuracy
 
 lr = 0.001
-epoch = 30
+epoch = 20
 weight_decay = 0.0001
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=weight_decay)
