@@ -78,7 +78,7 @@ def processImages(image_files):
         print("Processing:", i, item)
         img = Image.open(item)
         # img = img.resize((750, 500),Image.ANTIALIAS)
-        img = test_img.resize((750, 500),Image.NEAREST)
+        img = img.resize((750, 500),Image.NEAREST)
         # print(test_img)
 
         output_filename = '0'+ item[-7:]

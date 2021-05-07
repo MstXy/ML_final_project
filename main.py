@@ -15,6 +15,7 @@ from PIL import Image
 import cv2
 
 from unet import UNet
+from dataset import DroneDataset, DroneTestDataset
 
 import pandas as pd
 import numpy as np
@@ -66,45 +67,7 @@ X_train, X_val = train_test_split(X_trainval, test_size=0.15, random_state=0)
 # plt.show()
 
 
-class DroneDataset(Dataset):
-    
-    def __init__(self, img_path, mask_path, X, mean, std, transform=None):
-        self.img_path = img_path
-        self.mask_path = mask_path
-        self.X = X
-        self.transform = transform
-        self.mean = mean
-        self.std = std
-        
-    def __len__(self):
-        return len(self.X)
-    
-    def __getitem__(self, i):
-        img = cv2.imread(self.img_path + self.X[i] + '.jpg')
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        mask = cv2.imread(self.mask_path + '0' + self.X[i] + '.png', cv2.IMREAD_GRAYSCALE)
-        
-        #how to transform?
-        if self.transform:
-            img = self.transform(img)
-            mask = self.transform(img)
-            
-        img = Image.fromarray(img)
-        trans = T.Compose(
-                        [T.ToTensor(),
-                        T.Normalize(self.mean, self.std)]
-                        )
-        img = trans(img)
-        # simply calling the below will not work, you have to forward it to return something, 
-        # thus, we have to use T.Compose and then call it.
-        # img = T.ToTensor()
-        # img = T.Normalize(self.mean, self.std)
-        mask = torch.from_numpy(mask).long()
-        
-        # if self.patches:
-        #     img, mask = self.tiles(img, mask)
-            
-        return img, mask
+
     
     
 mean=[0.485, 0.456, 0.406]
@@ -114,7 +77,6 @@ std=[0.229, 0.224, 0.225]
 #create datasets
 train_set = DroneDataset(IMAGE_PATH, MASK_PATH, X_train, mean, std)
 val_set = DroneDataset(IMAGE_PATH, MASK_PATH, X_val, mean, std)
-test_set = DroneDataset(IMAGE_PATH, MASK_PATH, X_test, mean, std)
 #load data
 batch_size= 2
 
@@ -329,12 +291,15 @@ plot_miou(train_log)
 plot_accuracy(train_log)
 
 
-
+model = torch.load("5_train_batch_2_epoch_15_decay_1e-4_sche/Unet_5.pt")
+test_set = DroneTestDataset(IMAGE_PATH, MASK_PATH, X_test)
+print(test_set[0])
 
 # evaluation
 def predict_image_mask_miou(model, image, mask):
     model.eval()
-    
+    t = T.Compose([T.ToTensor(), T.Normalize(mean, std)])
+    image = t(image)
     model.to(device)
     image = image.to(device)
     mask = mask.to(device)
@@ -350,7 +315,8 @@ def predict_image_mask_miou(model, image, mask):
 
 def predict_image_mask_accuracy(model, image, mask):
     model.eval()
-
+    t = T.Compose([T.ToTensor(), T.Normalize(mean, std)])
+    image = t(image)
     model.to(device)
     image = image.to(device)
     mask = mask.to(device)
@@ -360,7 +326,7 @@ def predict_image_mask_accuracy(model, image, mask):
         mask = mask.unsqueeze(0)
         
         output = model(image)
-        accuracy = pixel_accuracy(output, mask)
+        accuracy = pixel_accuracy(output, mask).item()
         masked = torch.argmax(output, dim=1)
         masked = masked.cpu().squeeze(0)
     return masked, accuracy
@@ -373,6 +339,7 @@ def model_miou_score(model, test_set):
         img, mask = test_set[i]
         pred_mask, score = predict_image_mask_miou(model, img, mask)
         score_iou.append(score)
+    # print(score_iou)
     return np.mean(score_iou)
 
 def model_pixel_accuracy(model, test_set):
@@ -381,6 +348,7 @@ def model_pixel_accuracy(model, test_set):
         img, mask = test_set[i]
         pred_mask, acc = predict_image_mask_accuracy(model, img, mask)
         accuracy.append(acc)
+    # print(accuracy)
     return np.mean(accuracy)
 
 model_miou = model_miou_score(model, test_set)
@@ -391,6 +359,8 @@ print('Test Set Pixel Accuracy: ', model_accuracy)
 
 # visualize pic 1
 image, mask = test_set[0]
+
+# print(image, mask)
 pred_mask, score = predict_image_mask_miou(model, image, mask)
 fig, (ax1, ax2, ax3) = plt.subplots(1,3, figsize=(20,10))
 ax1.imshow(image)
@@ -403,8 +373,9 @@ ax2.set_axis_off()
 ax3.imshow(pred_mask)
 ax3.set_title('Predicted | MIOU {:.3f}'.format(score))
 ax3.set_axis_off()
-
 fig.savefig('picture_1.png')
+
+plt.show()
 
 
 # visualize pic 2
@@ -421,8 +392,9 @@ ax2.set_axis_off()
 ax3.imshow(pred_mask)
 ax3.set_title('Predicted | MIOU {:.3f}'.format(score))
 ax3.set_axis_off()
-
 fig.savefig('picture_2.png')
+
+plt.show()
 
 
 # visualize pic 3
@@ -439,5 +411,6 @@ ax2.set_axis_off()
 ax3.imshow(pred_mask)
 ax3.set_title('Predicted | MIOU {:.3f}'.format(score))
 ax3.set_axis_off()
-
 fig.savefig('picture_3.png')
+
+plt.show()
