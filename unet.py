@@ -77,7 +77,12 @@ class UNet(nn.Module):
         )
     
     def up_conv(self, in_channels):
-        return nn.ConvTranspose2d(in_channels , in_channels // 2, kernel_size=2, stride=2)
+        return nn.ConvTranspose2d(
+                    in_channels, 
+                    out_channels=in_channels // 2, 
+                    kernel_size=2, 
+                    stride=2
+                    )
 
     def Up(self, copy, t):
         th, tw = copy.size()[2:]
