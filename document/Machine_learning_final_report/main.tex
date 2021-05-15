@@ -1,0 +1,64 @@
+% THIS TEMPLATE IS A WORK IN PROGRESS
+
+\documentclass{article}
+
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+
+%\lhead{\includegraphics[width=0.2\textwidth]{nyush-logo.pdf}}
+\fancypagestyle{firstpage}{%
+  \lhead{NYU Shanghai}
+  \rhead{
+  %%%% COMMENT OUT / UNCOMMENT THE LINES BELOW TO FIT WITH YOUR MAJOR(S)
+  %\&
+  %Data
+   Machine Learning 2021}
+}
+
+%%%% PROJECT TITLE
+\title{Your Wonderful Project Topic}
+
+%%%% NAMES OF ALL THE STUDENTS INVOLVED (first-name last-name)
+\author{\href{mailto:author1@nyu.edu}{Author \#1}, \href{mailto:author2@nyu.edu}{Author \#2}}
+
+\date{\vspace{-5ex}} %NO DATE
+
+
+\begin{document}
+\maketitle
+\thispagestyle{firstpage}
+
+
+\begin{abstract}
+    A abstract sums up your work in very few sentences:
+    (i) state the problem you are addressing;
+    (ii) say why it’s an interesting problem, and which issues are hard to tackle; 
+    (iii) give your approach towards solving the problem; 
+    (iv) say Why and how well your approach solves the problem.
+\end{abstract}
+
+
+\section*{Introduction}
+
+Your introduction briefly explains the problem you address, and what you’ve achieved towards solving the problem. It’s an edited and updated version of your introduction and objective from your topic proposal
+
+
+
+\section*{Dataset}
+
+Explain what dataset you will use, and give a short description about the dataset. 
+
+\section*{Solution}
+
+The solution section covers all of your model design, algorithms, formulas, findings etc. It explains in detail each contribution, if possible with figures/schematics.
+
+\section*{Results and Discussion}
+The results section details your metrics and experiments for the assessment of your solution. It allows you to compare your idea with other approaches you've tested. 
+
+\nocite{*}
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+
+
+\end{document}
