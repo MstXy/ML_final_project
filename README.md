@@ -2,6 +2,7 @@
 Spring 2021 Machine Learning Final Project  
 By Muyang Xu, Chengyu Zhang, Sida Chen
 
+## Abstract  
 Our project addresses the developing automation in aerial drone piloting and image capturing. While current automation is not yet ripe, with the manual operation still needed, we decided to run image semantic segmentation on aerial drone-captured images to automate and refine the object detection in drone operation. This project first uses U-Net and then advances to Mobile-Unet as the primary machine learning approach towards solving the problem. Our model yields satisfactory results with the implementation of the high-performance model (in both computational time and accuracy) and by fine-tuning the model and self-creating testing datasets.
 
 **Dataset:** Semantic Drone Datasets, Institute of Computer Graphics and Vision, https://www.tugraz.at/index.php?id=22387.  
@@ -17,7 +18,7 @@ See our **Project Proprosal** [here](document/Project%20Proposal.pdf)
 See our **Project Presentatoin Slides** [here](https://docs.google.com/presentation/d/1X5dVDS3FbJU6Vf7eZQmayWUq979J6oYpvzezia4IyJo/edit?usp=sharing)  
 See our **Final Paper** [here](document/Final_paper_draft.pdf)  
 
-## Several Clarification on the files:  
+## Several clarification on the files:  
 Processed Dataset: [dataset](dataset)  
 Self-implemented U-Net: [unet.py](unet.py)  
 Main training and visualization code: [main.py](main.py)  
