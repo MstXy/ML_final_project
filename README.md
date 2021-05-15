@@ -10,8 +10,9 @@ Our project addresses the developing automation in aerial drone piloting and ima
 - Aerial Semantic Segmentation Drone Dataset. Kaggle, https://www.kaggle.com/bulentsiyah/semantic-drone-dataset
 - U-Net. Olaf Ronneberger, Philipp Fischer, and Thomas Brox "U-Net: Convolutional Networks for Biomedical Image Segmentation." arXiv:1505.04597v1, 2015.https://arxiv.org/abs/1505.04597
 - Mobile-Unet. Junfeng Jing, Zhen Wang, Matthias Ratsch and Huanhuan Zhang. "Mobile-Unet: An efficient convolutional neural network for fabric defect detection." In Textile Research Journal [DOI:10.1177/0040517520928604](https://journals.sagepub.com/doi/full/10.1177/0040517520928604), 2020.
-- Mark Sandler, Andrew Howard, Menglong Zhu, Andrey Zhmoginov, and Liang-Chieh Chen. "MobileNetV2: Inverted Residuals and Linear Bottlenecks." In The IEEE Conference on Computer Vision and Pattern Recognition (CVPR), arXiv:1801.04381v4, 2019.https://arxiv.org/abs/1801.04381  
+- MobileNetV2. Mark Sandler, Andrew Howard, Menglong Zhu, Andrey Zhmoginov, and Liang-Chieh Chen. "MobileNetV2: Inverted Residuals and Linear Bottlenecks." In The IEEE Conference on Computer Vision and Pattern Recognition (CVPR), arXiv:1801.04381v4, 2019.https://arxiv.org/abs/1801.04381  
 
+See our **Project Proprosal** [here](document/Project%20Proposal)
 
 
 
