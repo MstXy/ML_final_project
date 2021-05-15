@@ -12,7 +12,17 @@ Our project addresses the developing automation in aerial drone piloting and ima
 - Mobile-Unet. Junfeng Jing, Zhen Wang, Matthias Ratsch and Huanhuan Zhang. "Mobile-Unet: An efficient convolutional neural network for fabric defect detection." In Textile Research Journal [DOI:10.1177/0040517520928604](https://journals.sagepub.com/doi/full/10.1177/0040517520928604), 2020.
 - MobileNetV2. Mark Sandler, Andrew Howard, Menglong Zhu, Andrey Zhmoginov, and Liang-Chieh Chen. "MobileNetV2: Inverted Residuals and Linear Bottlenecks." In The IEEE Conference on Computer Vision and Pattern Recognition (CVPR), arXiv:1801.04381v4, 2019.https://arxiv.org/abs/1801.04381  
 
+## Path to our documents  
 See our **Project Proprosal** [here](document/Project%20Proposal.pdf)
+See our **Project Presentatoin Slides** [here](https://docs.google.com/presentation/d/1X5dVDS3FbJU6Vf7eZQmayWUq979J6oYpvzezia4IyJo/edit?usp=sharing)
+See our **Final Paper** [here](document/Final_paper_draft.pdf)
+
+## Several Clarification on the files:
+Processed Dataset: [dataset](dataset)
+Self-implemented U-Net: [unet.py](unet.py)
+Main training and visualization code: [main.py](main.py)
+Trained Model Pytorch .pt file: [trained_model.pt](trained_model.pt)
+Testing Results using images found on the Internet: [val_result](val_result)
 
 
 
