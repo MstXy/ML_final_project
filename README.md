@@ -23,6 +23,7 @@ Self-implemented U-Net: [unet.py](unet.py)
 Main training and visualization code: [main.py](main.py)  
 Trained Model Pytorch .pt file: [trained_model.pt](trained_model.pt)  
 Testing Results using images found on the Internet: [val_result](val_result)  
-  
+
+Some train results
 ![train_results_1](val_result/picture_0.png)
 ![train_results_2](val_result/picture_2.png) 
