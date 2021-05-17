@@ -17,7 +17,7 @@ Our project addresses the developing automation in aerial drone piloting and ima
 ## Path to our documents  
 See our **Project Proprosal** [here](document/Project%20Proposal.pdf)  
 See our **Project Presentatoin Slides** [here](https://docs.google.com/presentation/d/1X5dVDS3FbJU6Vf7eZQmayWUq979J6oYpvzezia4IyJo/edit?usp=sharing)  
-See our **Final Paper** [here](document/Final_paper_draft.pdf)  
+See our **Final Paper** [here](document/Final%20Paper.pdf)  
 
 ## Several clarification on the files:  
 Processed Dataset: [dataset](dataset)  
